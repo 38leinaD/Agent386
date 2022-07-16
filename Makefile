@@ -3,8 +3,9 @@ TP='/cygdrive/c/Program Files (x86)/CodeAndWeb/TexturePacker/bin/TexturePacker.e
 .PHONY: deploy backup gen_assets release clean
 release:
 	rm -rf Release
-	mkdir Release
-	cp -r Game/* Release
+	mkdir -p Release/audio
+	cp -R Game/* Release
+	cp -R Assets/audio/* Release/audio/
 	
 deploy: release minify
 	(cd Release; scp -r * daniel@192.168.1.2:/Users/daniel/Web/apache-tomcat-5.5.28/webapps/games/proto/Agent386)
@@ -14,18 +15,19 @@ gen_assets:
 	$(TP) --sheet Game/assets/sprites/sprites.png --data Game/assets/sprites/sprites.json --format json --disable-rotation --trim-mode None Assets/sprites/*.png
 	
 	cp Assets/tiles/tilemap.png Game/assets/tiles/tilemap.png
-	
+
+gen_audio:
 	echo "===== AUDIO ====="
 	rm -rf Game/assets/audio
 	mkdir -p Game/assets/audio/sounds
 	cp Assets/audio/*.ogg Game/assets/audio
 
-	for f in Assets/audio/sounds/*.mp3; do \
+	for f in Assets/audio/sounds/*.wav; do \
 		out=`basename $$f`; \
-		out=$${out%.mp3}.ogg; \
-		oggenc.exe -o Game/assets/audio/sounds/$$out $$f; \
+		out=$${out%.wav}.ogg; \
+		oggenc -o Game/assets/audio/sounds/$$out $$f; \
 	done
-	
+
 minify:
 	(cd Release; node r.js -o baseUrl=js name=init out=min.js;)
 	rm -rf Release/js/*.js Release/js/classes Release/r.js

@@ -10,17 +10,29 @@ define(function(require) {
         init: function() {
 
             try {
-                this.context = new webkitAudioContext();
+                this.context = new AudioContext();
             }
             catch(e) {
-                console.log('Web Audio API is not supported in this browser');
+                console.log('Web Audio API is not supported in this browser', e);
             }
 
             this.songSource = null;
+            this.suspended = true;
         },
 
         isSupported: function() {
             return this.context != null;
+        },
+
+        isSuspended: function() {
+            return this.isSuspended;
+        },
+
+        resume: function() {
+            this.context.resume().then(() => {
+                console.log('Playback resumed successfully');
+                this.suspended = false;
+            });
         },
 
         playSound: function(buffer, volume) {
@@ -31,13 +43,13 @@ define(function(require) {
                 source.connect(this.context.destination);
             }
             else {
-                var gain = this.context.createGainNode();
+                var gain = this.context.createGain();
                 source.connect(gain);
                 gain.connect(this.context.destination);
                 gain.gain.value = volume;
             }
 
-            source.noteOn(0);
+            source.start(0);
         },
 
         playSong: function(buffer) {
@@ -50,7 +62,7 @@ define(function(require) {
             this.songSource = this.context.createBufferSource();
             this.songSource.loop = true;
 
-            var gain = this.context.createGainNode();
+            var gain = this.context.createGain();
             this.songSource.connect(gain);
             gain.connect(this.context.destination);
             gain.gain.value = 0.2;
@@ -58,12 +70,12 @@ define(function(require) {
             this.songSource.buffer = buffer;
 
 
-            this.songSource.noteOn(0);
+            this.songSource.start(0);
         },
 
         stopSong: function() {
             if (this.songSource == null) return;
-            this.songSource.noteOff(0);
+            this.songSource.start(0);
         }
     });
 
