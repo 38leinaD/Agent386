@@ -12,6 +12,8 @@ define(function(require) {
     var gamepadSupport = !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
     var gamepad = undefined;
 
+    var audio = require('audio');
+
     var ticking = false;
 
     function startPolling() {
@@ -127,6 +129,9 @@ define(function(require) {
     }
 
     document.addEventListener('keydown', function(e) {
+        if (audio.isSuspended()) {
+            audio.resume();
+        }
         setKey(e, true);
         e.preventDefault();
         e.stopImmediatePropagation();
